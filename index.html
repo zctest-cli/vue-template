@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover" />
+    <title>Hello World</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0
+        }
+    </style>
+</head>
+<script src="pixi/pixi.min.js"></script>
+
+<body>
+    <script type="text/javascript">
+
+        //创建Pixi应用程序和stage（舞台）
+        let app = new PIXI.Application({
+            width: window.innerWidth,         // default: 800 宽度
+            height: window.innerHeight,        // default: 600 高度
+            antialias: true,    // default: false 反锯齿
+            transparent: false, // default: false 透明度
+            resolution: 1       // default: 1 分辨率
+        }
+        );
+
+        document.body.appendChild(app.view);
+        const { Sprite, TextureCache, Rectangle } = PIXI;
+        const { loader } = app
+
+        loader
+            .add("cat", "/images/cat.png") ////加载资源
+            .add("blob", "/images/blob.png")
+            .add("tileset", "images/tileset.png")
+            .on("progress", loadProgressHandler)
+            .load(setup);//回调
+
+        function loadProgressHandler(resource) {
+            console.log("loading: ", resource);
+            //Display the percentage of files currently loaded
+            console.log("progress: " + loader.progress + "%");
+        }
+        //This `setup` function will run when the image has loaded
+        let cat, state
+        function setup() {
+
+            //Create the cat sprite
+            cat = new Sprite(loader.resources.cat.texture);
+            // cat.x = 96;
+            // cat.y = 96;
+            //位置
+            cat.position.set(96, 96);
+            // 速度属性（vx和vy）
+            cat.vx = 0;
+            cat.vy = 0;
+            //缩放
+            cat.scale.set(0.5, 0.5);
+            // 旋转中心
+            // cat.anchor.set(32, 32)
+            cat.pivot.set(32, 32)
+            // 旋转角度
+            cat.rotation = 0.5;
+
+            app.ticker.add(delta => gameLoop(delta));
+
+            let blob = new Sprite(loader.resources.blob.texture);
+
+            //雪碧图
+            // let texture = loader.resources.tileset.texture;
+            let texture = TextureCache["images/tileset.png"];;
+            let rectangle = new Rectangle(192, 128, 64, 64);
+            texture.frame = rectangle;
+            let rocket = new Sprite(texture);
+            rocket.x = 32;
+            rocket.y = 32;
+
+
+            app.stage.addChild(rocket);
+            app.stage.addChild(cat);
+            app.stage.addChild(blob);
+            state = play;
+        }
+
+        function gameLoop(delta) {
+            state(delta);
+        }
+
+        function play(delta) {
+
+            //Move the cat 1 pixel to the right each frame
+            cat.vx = 1
+            cat.x += cat.vx;
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover" />
+    <title>Hello World</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0
+        }
+    </style>
+</head>
+<script src="pixi/pixi.min.js"></script>
+
+<body>
+    <script type="text/javascript">
+
+        //创建Pixi应用程序和stage（舞台）
+        let app = new PIXI.Application({
+            width: window.innerWidth,         // default: 800 宽度
+            height: window.innerHeight,        // default: 600 高度
+            antialias: true,    // default: false 反锯齿
+            transparent: false, // default: false 透明度
+            resolution: 1       // default: 1 分辨率
+        }
+        );
+
+        document.body.appendChild(app.view);
+        const { Sprite, TextureCache, Rectangle, Text, TextStyle } = PIXI;
+        const { loader } = app
+
+        loader
+            .add("animals", "/images/animals.json") ////加载资源
+            .on("progress", loadProgressHandler)
+            .load(setup);//回调
+
+        function loadProgressHandler(resource) {
+            console.log("loading: ", resource);
+            //Display the percentage of files currently loaded
+            console.log("progress: " + loader.progress + "%");
+        }
+        //This `setup` function will run when the image has loaded
+        let cat, state
+        function setup() {
+            id = loader.resources.animals.textures;
+
+            let cat = new Sprite(id["cat.png"]);
+            cat.position.set(16, 16);
+
+            let hedgehog = new Sprite(id["hedgehog.png"]);
+            hedgehog.position.set(32, 32);
+
+            //The tiger
+            let tiger = new Sprite(id["tiger.png"]);
+            tiger.position.set(64, 64);
+
+            let animals = new PIXI.Container();
+
+            animals.addChild(cat);
+            animals.addChild(hedgehog);
+            animals.addChild(tiger);
+
+            console.log(animals.children)
+            //整体设置位置
+            animals.position.set(64, 64);
+            //局部位置
+            console.log(cat.x);
+            //整体位置
+            console.log(animals.toGlobal(cat.position));
+            console.log(cat.parent.toGlobal(cat.position));
+            console.log(cat.getGlobalPosition().x)
+
+            //精灵相对距离？？
+            console.log("tiger to hedgehog x: ", tiger.toLocal(tiger.position, hedgehog))
+
+            // 文字
+            let style = new TextStyle({
+                fontFamily: "Arial",
+                fontSize: 36,
+                fill: "white",
+                stroke: '#ff3300',
+                strokeThickness: 4,
+                dropShadow: true,
+                dropShadowColor: "#000000",
+                dropShadowBlur: 4,
+                dropShadowAngle: Math.PI / 6,
+                dropShadowDistance: 6,
+            });
+            let message = new Text("Hello Pixi!", style);
+            message.position.set(54, 196);
+            
+            app.stage.addChild(animals);
+            app.stage.addChild(message);
+
+            setTimeout(() => {
+                message.text = "Text changed!";
+                message.style = {fill: "white", font: "16px PetMe64"};
+            }, 3000);
+        }
+
+    </script>
+</body>
+
+</html>

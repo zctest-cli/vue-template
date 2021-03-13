@@ -1,0 +1,188 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover" />
+    <title>Hello World</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0
+        }
+    </style>
+</head>
+<script src="pixi/pixi.min.js"></script>
+
+<body>
+    <script type="text/javascript">
+
+        function keyboard(value) {
+            let key = {};
+            key.value = value;
+            key.isDown = false;
+            key.isUp = true;
+            key.press = undefined;
+            key.release = undefined;
+            //The `downHandler`
+            key.downHandler = event => {
+                if (event.key === key.value) {
+                    if (key.isUp && key.press) key.press();
+                    key.isDown = true;
+                    key.isUp = false;
+                    event.preventDefault();
+                }
+            };
+
+            //The `upHandler`
+            key.upHandler = event => {
+                if (event.key === key.value) {
+                    if (key.isDown && key.release) key.release();
+                    key.isDown = false;
+                    key.isUp = true;
+                    event.preventDefault();
+                }
+            };
+
+            //Attach event listeners
+            const downListener = key.downHandler.bind(key);
+            const upListener = key.upHandler.bind(key);
+
+            window.addEventListener(
+                "keydown", downListener, false
+            );
+            window.addEventListener(
+                "keyup", upListener, false
+            );
+
+            // Detach event listeners
+            key.unsubscribe = () => {
+                window.removeEventListener("keydown", downListener);
+                window.removeEventListener("keyup", upListener);
+            };
+
+            return key;
+        }
+
+        //创建Pixi应用程序和stage（舞台）
+        let app = new PIXI.Application({
+            width: window.innerWidth,         // default: 800 宽度
+            height: window.innerHeight,        // default: 600 高度
+            antialias: true,    // default: false 反锯齿
+            transparent: false, // default: false 透明度
+            resolution: 1       // default: 1 分辨率
+        }
+        );
+
+        document.body.appendChild(app.view);
+        const { Sprite, TextureCache, Rectangle } = PIXI;
+        const { loader } = app
+
+        loader
+            .add("cat", "/images/cat.png") ////加载资源
+            .add("blob", "/images/blob.png")
+            .add("tileset", "images/tileset.png")
+            .on("progress", loadProgressHandler)
+            .load(setup);//回调
+
+        function loadProgressHandler(resource) {
+            console.log("loading: ", resource);
+            //Display the percentage of files currently loaded
+            console.log("progress: " + loader.progress + "%");
+        }
+        //This `setup` function will run when the image has loaded
+        let cat, state
+        function setup() {
+
+            //Create the cat sprite
+            cat = new Sprite(loader.resources.cat.texture);
+            // cat.x = 96;
+            // cat.y = 96;
+            //位置
+            cat.position.set(96, 96);
+            // 速度属性（vx和vy）
+            cat.vx = 0;
+            cat.vy = 0;
+            // 旋转角度
+
+            app.stage.addChild(cat);
+
+            let left = keyboard("ArrowLeft"),
+                up = keyboard("ArrowUp"),
+                right = keyboard("ArrowRight"),
+                down = keyboard("ArrowDown");
+
+            //Left arrow key `press` method
+            left.press = () => {
+                //Change the cat's velocity when the key is pressed
+                cat.vx = -5;
+                cat.vy = 0;
+            };
+
+            //Left arrow key `release` method
+            left.release = () => {
+                //If the left arrow has been released, and the right arrow isn't down,
+                //and the cat isn't moving vertically:
+                //Stop the cat
+                if (!right.isDown && cat.vy === 0) {
+                    cat.vx = 0;
+                }
+            };
+
+            //Up
+            up.press = () => {
+                cat.vy = -5;
+                cat.vx = 0;
+            };
+            up.release = () => {
+                if (!down.isDown && cat.vx === 0) {
+                    cat.vy = 0;
+                }
+            };
+
+            //Right
+            right.press = () => {
+                cat.vx = 5;
+                cat.vy = 0;
+            };
+            right.release = () => {
+                if (!left.isDown && cat.vy === 0) {
+                    cat.vx = 0;
+                }
+            };
+
+            //Down
+            down.press = () => {
+                cat.vy = 5;
+                cat.vx = 0;
+            };
+            down.release = () => {
+                if (!up.isDown && cat.vx === 0) {
+                    cat.vy = 0;
+                }
+            };
+
+            //Set the game state
+            state = play;
+
+            //Start the game loop 
+            app.ticker.add(delta => gameLoop(delta));
+
+        }
+        function gameLoop(delta) {
+
+            //Update the current game state:
+            state(delta);
+        }
+
+        function play(delta) {
+
+            //Use the cat's velocity to make it move
+            cat.x += cat.vx;
+            cat.y += cat.vy
+        }
+    </script>
+</body>
+
+</html>

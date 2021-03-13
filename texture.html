@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover" />
+    <title>Hello World</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0
+        }
+    </style>
+</head>
+<script src="pixi/pixi.min.js"></script>
+
+<body>
+    <script type="text/javascript">
+
+        //创建Pixi应用程序和stage（舞台）
+        let app = new PIXI.Application({
+            width: window.innerWidth,         // default: 800 宽度
+            height: window.innerHeight,        // default: 600 高度
+            antialias: true,    // default: false 反锯齿
+            transparent: false, // default: false 透明度
+            resolution: 1       // default: 1 分辨率
+        }
+        );
+
+        document.body.appendChild(app.view);
+        const { Sprite, TextureCache, Rectangle } = PIXI;
+        const { loader } = app
+
+        loader
+            .add("images/treasureHunter.json") ////加载资源
+            .load(setup);//回调
+
+        function loadProgressHandler(resource) {
+            console.log("loading: ", resource);
+            console.log("progress: " + loader.progress + "%");
+        }
+        let dungeon, explorer, treasure, id;
+
+        function setup() {
+            // 直接通过TextureCache获取
+            let dungeonTexture = TextureCache["dungeon.png"];
+            dungeon = new Sprite(dungeonTexture);
+            app.stage.addChild(dungeon);
+
+            //通过loader's `resources`
+            explorer = new Sprite(
+                loader.resources["images/treasureHunter.json"].textures["explorer.png"]
+            );
+            explorer.x = 68;
+
+            //Center the explorer vertically
+            explorer.y = app.stage.height / 2 - explorer.height / 2;
+            app.stage.addChild(explorer);
+
+            // 通过id
+            id = loader.resources["images/treasureHunter.json"].textures;
+            console.log(id)
+            treasure = new Sprite(id["treasure.png"]);
+            treasure.x = app.stage.width - treasure.width - 48;
+            treasure.y = app.stage.height / 2 - treasure.height / 2;
+
+            // 出口
+            door = new Sprite(id["door.png"]);
+            door.position.set(32, 0);
+            app.stage.addChild(door);
+            app.stage.addChild(treasure);
+
+            //怪物
+            let numberOfBlobs = 6,
+                spacing = 48,
+                xOffset = 150;
+            for (let i = 0; i < numberOfBlobs; i++) {
+
+                //Make a blob
+                let blob = new Sprite(id["blob.png"]);
+
+                //Space each blob horizontally according to the `spacing` value.
+                //`xOffset` determines the point from the left of the screen
+                //at which the first blob should be added.
+                let x = spacing * i + xOffset;
+
+                //Give the blob a random y position
+                //(`randomInt` is a custom function - see below)
+                let y = randomInt(0, app.stage.height - blob.height);
+
+                //Set the blob's position
+                blob.x = x;
+                blob.y = y;
+
+                //Add the blob sprite to the stage
+                app.stage.addChild(blob);
+            }
+            function randomInt(min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+        }
+    </script>
+</body>
+
+</html>
